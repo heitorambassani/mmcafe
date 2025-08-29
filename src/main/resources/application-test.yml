@@ -1,0 +1,48 @@
+spring:
+  # usa JDK HttpClient nos testes
+  http:
+    client:
+      factory: jdk
+
+  # DESLIGA RabbitMQ nos testes (nem tenta conectar)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+  datasource:
+    url: jdbc:h2:mem:upload_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop   # cria no início, dropa ao final
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  sql:
+    init:
+      mode: never
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    listener:
+      simple:
+        auto-startup: false   # redundante se a autoconfig estiver excluída
+      direct:
+        auto-startup: false   # idem
+
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME:dummy}
+  api_key: ${CLOUDINARY_API_KEY:dummy}
+  api_secret: ${CLOUDINARY_API_SECRET:dummy}
+
+logging:
+  level:
+    org.springframework.amqp: error
+    org.hibernate.SQL: warn
