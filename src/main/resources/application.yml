@@ -14,21 +14,28 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 30000
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-         jdbc.lob.non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.lob.non_contextual_creation: true
+    show-sql: false
 
   rabbitmq:
-    uri: ${SPRING_RABBITMQ_URI}        
+    # Use a URL do CloudAMQP/Heroku: amqps://...
+    uri: ${SPRING_RABBITMQ_URI}
     template:
       default-receive-queue: ${SPRING_RABBITMQ_DEFAULT_QUEUE:image.queue}
     listener:
       simple:
         default-requeue-rejected: false
+        missing-queues-fatal: false
         trusted-packages: com.mmcafe.upload_image_ia.dto
 
   servlet:
