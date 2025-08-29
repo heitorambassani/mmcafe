@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: Dockerfile
+run:
+  web: >
+    sh -c "java $JAVA_OPTS -Dserver.port=$PORT
+    -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod}
+    -jar /app/app.jar"
