@@ -4,16 +4,20 @@ services:
   app:
     build: .
     container_name: upload-image-ia
+    env_file:
+      - .env
     ports:
-      - "8082:8082"
+      - "8083:8083"                # profile dev usa 8083
     depends_on:
       db:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8082
+      SPRING_PROFILES_ACTIVE: dev  # usa application-dev.yml
+      SERVER_PORT: 8083
+
+      # apontar para os serviços do compose
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/upload_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -22,12 +26,11 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
 
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      # herdadas do .env (mantidas aqui só para ficar explícito)
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
       GROQ_API_KEY: ${GROQ_API_KEY}
     volumes:
-      - ~/.m2:/root/.m2:rw # cache Maven do host
+      - ~/.m2:/root/.m2:rw
     networks:
       - backend
     restart: unless-stopped

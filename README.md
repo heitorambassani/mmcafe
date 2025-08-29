@@ -1,179 +1,58 @@
-# Upload de Imagens com Enriquecimento de Texto via IA
+Upload de Imagens + IA (Cloudinary, RabbitMQ, Groq, Postgres)
 
-Este projeto implementa um fluxo completo de **upload de imagens**, armazenamento no **Cloudinary**,
-envio de metadados para **RabbitMQ**, enriquecimento de texto via **Groq API** e
-persistência em **PostgreSQL**. Abaixo estão **todas as informações de infraestrutura** –
-incluindo **senha do banco**, como **subir o banco** sozinho e como rodar local/dev vs Docker.
+Fluxo: upload → Cloudinary → fila RabbitMQ → Groq API (enriquecimento de texto) → PostgreSQL.
 
----
+1) Produção (Heroku)
 
-## Credenciais do Banco de Dados (default)
+Swagger (PROD):
+https://mmcafe-upload-ia-cd915bd02d9e.herokuapp.com/swagger-ui/index.html
 
-> Em produção use variáveis de ambiente ou um cofre. Estes valores são **apenas para dev**.
+2) Subir tudo em DEV (Docker)
 
-| Item                  | Valor default  |
-|-----------------------|----------------|
-| **Host (Docker)**     | `db` (dentro do compose) |
-| **Host (Local/dev)**  | `localhost` (via porta exposta) |
-| **Porta**             | `5432` |
-| **Database**          | `upload_db` |
-| **Usuário**           | `postgres` |
-| **Senha**             | `postgres` |
+Crie um arquivo .env.dev na raiz:
 
-No Spring Boot, defina (conforme o profile):
+# porta interna da app
+SERVER_PORT=8083
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/upload_db   # para app rodando LOCAL
-    username: postgres
-    password: postgres
-```
+# Postgres (container db)
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/upload_db
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
 
-Quando a aplicação roda **dentro do Docker Compose**, o host muda para o **nome do serviço**:
+# RabbitMQ (container rabbitmq)
+SPRING_RABBITMQ_HOST=rabbitmq
+SPRING_RABBITMQ_PORT=5672
+SPRING_RABBITMQ_USERNAME=guest
+SPRING_RABBITMQ_PASSWORD=guest
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://db:5432/upload_db          # para app rodando NO CONTAINER
-    username: postgres
-    password: postgres
-```
+# Cloudinary (formato único)
+CLOUDINARY_URL=cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>
 
----
+# Groq
+GROQ_API_KEY=xxxxxxxxxxxxxxxx
 
-## Como subir **APENAS o PostgreSQL** (para testar local)
 
-Se você quer **debugar a aplicação local** (profile `dev`) mas usar o Postgres do Docker:
+Suba tudo (app + db + rabbit), em segundo plano, lendo o .env.dev:
 
-1) Suba apenas o serviço `db` do compose:
-```bash
-docker compose up -d db
-```
+docker compose --env-file .env.dev up -d --build
 
-2) Aguarde o healthcheck ficar **healthy**:
-```bash
-docker compose ps
-```
 
-3) Verifique se está ouvindo em `localhost:5432`:
-```bash
-docker logs -f postgres-db
-```
+Comandos úteis:
 
-4) Configure o **`application-dev.yml`** para apontar para **localhost:5432** (já exposto pelo compose):
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/upload_db
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
-```
+# logs da app
+docker compose --env-file .env.dev logs -f app
 
-> Dica: Se estiver no **WSL2/Linux** e rodando postgres em **Docker Desktop no Windows**, `localhost` também funciona porque a porta foi publicada (`- "5432:5432"`).
+# parar tudo e remover volumes do Postgres
+docker compose --env-file .env.dev down -v
 
----
 
-## Criando banco/usuário manualmente (opcional)
+Acesso rápido (DEV):
 
-O compose já cria tudo via variáveis de ambiente, mas se quiser criar manualmente:
+App: http://localhost:8083
 
-```bash
-# Entrar no container do Postgres
-docker exec -it postgres-db psql -U postgres
+Swagger: http://localhost:8083/swagger-ui/index.html
 
--- Dentro do psql:
-CREATE DATABASE upload_db;
-CREATE USER postgres WITH PASSWORD 'postgres'; -- (já existe no compose)
-GRANT ALL PRIVILEGES ON DATABASE upload_db TO postgres;
-\q
-```
+RabbitMQ UI: http://localhost:15672
+(guest/guest)
 
-> Por padrão do compose, o DB `upload_db` e o usuário `postgres/postgres` já vêm prontos.
-
----
-
-## Como subir **APENAS o RabbitMQ**
-
-Para testar filas localmente com sua app rodando no IntelliJ (profile `dev`):
-
-```bash
-docker compose up -d rabbitmq
-```
-
-A UI do RabbitMQ ficará em: http://localhost:15672 (user: `guest`, pass: `guest`).  
-A conexão AMQP é em `amqp://guest:guest@localhost:5672`.
-
-No `application-dev.yml`:
-
-```yaml
-spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-```
-
----
-
-## Executar **tudo** com Docker
-
-```bash
-docker compose up --build
-```
-
-Serviços disponíveis:
-- **Aplicação** → http://localhost:8082
-- **Swagger/OpenAPI** → http://localhost:8082/swagger-ui.html
-- **RabbitMQ Management** → http://localhost:15672 (guest/guest)
-- **PostgreSQL** → `localhost:5432` (postgres/postgres, db: upload_db)
-
----
-
-## Rodar local (debug) usando Postgres & Rabbit do Docker
-
-1. **Suba** `db` e `rabbitmq`:
-   ```bash
-   docker compose up -d db rabbitmq
-   ```
-2. **Selecione o profile `dev`** no IntelliJ/VSCode (ou `SPRING_PROFILES_ACTIVE=dev`).
-3. Garanta que seu `application-dev.yml` **não usa H2** e está com `localhost:5432` e `localhost:5672`.
-4. **Run/Debug** a classe `UploadImageIaApplication` localmente.
-
-> Isso evita conflito de portas com a app no Docker (lá usamos `8082`; local use `8081` se preferir).
-
----
-
-## Troubleshooting
-
-- **`Failed to determine a suitable driver class`**  
-  Falta o driver do PostgreSQL no `pom.xml` **ou** a URL/usuário/senha do datasource.  
-  Confirme que o profile ativo tem `spring.datasource.url/username/password` e que o driver está declarado:
-  ```xml
-  <dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
-  </dependency>
-  ```
-
-- **App local não conecta ao DB do Docker**  
-  Verifique se a porta `5432` está publicada no compose e use `localhost` no `application-dev.yml`.
-
-- **`Connection refused` no Rabbit**  
-  Suba o serviço `rabbitmq` ou ajuste host/porta. Verifique `docker compose ps` e os logs.
-
----
-
-## Endpoints principais
-
-- **Swagger UI**: `http://localhost:8082/swagger-ui.html` (Docker) ou `http://localhost:8081/swagger-ui.html` (local/dev)
-- **POST /upload**: envio multipart (imagem + metadados), publica mensagem no Rabbit.
-- **GET /imagens**: lista registros persistidos (se implementado).
-
----
-
+Postgres: localhost:5432 (db: upload_db, user: postgres, pass: postgres)

@@ -4,12 +4,14 @@ server:
 spring:
   application:
     name: upload-image-ia
+
   http:
     client:
       factory: jdk
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/upload_db}
+    # No Docker, o host do Postgres é 'db'
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/upload_db}
     driver-class-name: org.postgresql.Driver
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
@@ -22,7 +24,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
+    # No Docker, o host do RabbitMQ é 'rabbitmq'
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:guest}
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
@@ -47,7 +50,7 @@ groq:
   model: openai/gpt-oss-20b
   timeout-ms: 10000
 
-
 logging:
   level:
     org.hibernate.SQL: debug
+    org.hibernate.tool.schema: debug

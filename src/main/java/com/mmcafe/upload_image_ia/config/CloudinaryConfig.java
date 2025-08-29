@@ -12,7 +12,10 @@ public class CloudinaryConfig {
     private String cloudinaryURL;
 
     @Bean
-    public Cloudinary cloudinary() {
-        return new Cloudinary(this.cloudinaryURL);
+    public Cloudinary cloudinary(@Value("${cloudinary.url}") String url) {
+        Cloudinary c = new Cloudinary(url.trim());
+        System.out.println("Cloudinary cloudName = " + c.config.cloudName); // deve imprimir drwnftxfb5
+        return c;
     }
+
 }

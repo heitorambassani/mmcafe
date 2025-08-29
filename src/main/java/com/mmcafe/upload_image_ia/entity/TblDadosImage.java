@@ -16,18 +16,21 @@ public class TblDadosImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 255)
+    @Column(length = 512)
     private String nome;
 
-    @Column(length = 255)
+    @Column(length = 128)
     private String tipo;
 
-    @Column(length = 1000)
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    @Column(length = 1000)
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String url;
 
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String conteudo;
 }
