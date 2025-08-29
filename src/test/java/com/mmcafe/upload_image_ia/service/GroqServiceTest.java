@@ -1,6 +1,6 @@
 package com.mmcafe.upload_image_ia.service;
 
-import com.mmcafe.upload_image_ia.properties.GroqProperties;
+import com.mmcafe.upload_image_ia.config.GroqProperties;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;

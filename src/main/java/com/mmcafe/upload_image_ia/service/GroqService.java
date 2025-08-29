@@ -3,7 +3,7 @@ package com.mmcafe.upload_image_ia.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mmcafe.upload_image_ia.properties.GroqProperties;
+import com.mmcafe.upload_image_ia.config.GroqProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;

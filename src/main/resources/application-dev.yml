@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: upload-image-ia
+  http:
+    client:
+      factory: jdk
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/upload_db}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    template:
+      default-receive-queue: ${SPRING_RABBITMQ_DEFAULT_QUEUE:image.queue}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        trusted-packages: com.mmcafe.upload_image_ia.dto
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+cloudinary:
+  url: ${CLOUDINARY_URL}
+
+groq:
+  api-key: ${GROQ_API_KEY}
+  base-url: https://api.groq.com/openai/v1
+  model: openai/gpt-oss-20b
+  timeout-ms: 10000
+
+
+logging:
+  level:
+    org.hibernate.SQL: debug

@@ -1,4 +1,4 @@
-package com.mmcafe.upload_image_ia.properties;
+package com.mmcafe.upload_image_ia.config;
 
 import lombok.Getter;
 import lombok.Setter;

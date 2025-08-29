@@ -1,0 +1,51 @@
+server:
+  port: ${PORT:8080}   # Heroku injeta PORT
+
+spring:
+  application:
+    name: upload-image-ia
+
+  http:
+    client:
+      factory: jdk
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  rabbitmq:
+    uri: ${SPRING_RABBITMQ_URI}
+    template:
+      default-receive-queue: ${SPRING_RABBITMQ_DEFAULT_QUEUE:image.queue}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        trusted-packages: com.mmcafe.upload_image_ia.dto
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+
+cloudinary:
+  url: ${CLOUDINARY_URL}
+
+groq:
+  api-key: ${GROQ_API_KEY}
+  base-url: https://api.groq.com/openai/v1
+  model: openai/gpt-oss-20b
+  timeout-ms: 10000
